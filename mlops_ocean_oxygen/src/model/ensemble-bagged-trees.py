@@ -8,7 +8,7 @@ sys.path.append(os.path.join("."))
 
 from dotenv import load_dotenv
 
-load_dotenv("../env")
+load_dotenv("../.env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
