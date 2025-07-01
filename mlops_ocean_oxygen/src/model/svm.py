@@ -10,6 +10,8 @@ load_dotenv("../env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVR
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import KFold
 from mlflow.models import infer_signature
 import pandas as pd
@@ -29,7 +31,7 @@ def run_experiment(data, features, target):
 
     with mlflow.start_run(run_name=model_name) as run:
 
-        model = LinearSVR()
+        model = Pipeline([('scaler', StandardScaler()), ('svm', LinearSVR())])
         train_scores = []
         test_scores = []
         total_time = 0
@@ -40,7 +42,7 @@ def run_experiment(data, features, target):
 
             start = time.time()
             model.fit(X_train, y_train)
-
+            
             train_pred = model.predict(X_train)
             test_pred = model.predict(X_test)
             fold_time = time.time() - start
