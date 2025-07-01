@@ -10,6 +10,7 @@ load_dotenv("../env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import KFold
 from mlflow.models import infer_signature
 import pandas as pd
 
