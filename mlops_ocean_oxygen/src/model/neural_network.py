@@ -10,6 +10,8 @@ load_dotenv("../env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import KFold
 from mlflow.models import infer_signature
 import pandas as pd
@@ -29,7 +31,10 @@ def run_experiment(data, features, target):
 
     with mlflow.start_run(run_name=model_name) as run:
 
-        model = MLPRegressor(hidden_layer_sizes=(25,), activation='relu', max_iter=1000)
+        model = Pipeline([
+            ('scaler', StandardScaler()), 
+            ('Neural Network', MLPRegressor(hidden_layer_sizes=(25,), activation='relu', max_iter=1000))
+        ])
         train_scores = []
         test_scores = []
         total_time = 0
