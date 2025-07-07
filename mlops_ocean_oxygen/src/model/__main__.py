@@ -2,7 +2,7 @@ import ensemble_bagged_trees, gradient_boosting, knn, linear_regression, neural_
 import pandas as pd 
 
 water_data = pd.read_csv("data/water.csv")
-water_data = water_data[water_data["O2ml_L"] >= 0].copy()
+water_data = water_data[(water_data["O2ml_L"] >= 0) & (water_data["NO3uM"] >= 0)].copy()
 features = ["Depthm", "T_degC", "PO4uM", "SiO3uM", "NO2uM", "NO3uM", "Salnty"]
 target = "O2ml_L"
 
