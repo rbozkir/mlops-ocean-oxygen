@@ -17,15 +17,8 @@ from mlflow.models import infer_signature
 import pandas as pd
 
 
-def run_experiment(data, features, target):
-    X = data[features]
-    y = data[target]
-
-    Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=80, random_state=42)
-
+def run_experiment(X, y, eval_data):
     model_name = "SVM"
-    eval_data = Xtest.copy()
-    eval_data["target"] = ytest
 
     cv = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -67,15 +60,15 @@ def run_experiment(data, features, target):
         }
 
         start_time = time.time()
-        model.fit(Xtrain, ytrain)
+        model.fit(X, y)
         end_time = time.time()
 
-        signature = infer_signature(Xtrain, model.predict(Xtrain))
+        signature = infer_signature(X, model.predict(X))
         model_info = mlflow.sklearn.log_model(
             model, name=model_name, signature=signature
         )
 
-        result = mlflow.models.evaluate(
+        mlflow.models.evaluate(
             model_info.model_uri,
             eval_data,
             targets="target",
@@ -102,4 +95,7 @@ if __name__=="__main__":
         if water_data[col].isnull().any() or water_data[col].dtype == "int64":
             water_data[col] = water_data[col].astype("float64")
     
-    run_experiment(water_data, features, target)
+    Xtrain, Xtest, ytrain, ytest = train_test_split(water_data[features], water_data[target], train_size=80, random_state=42)
+    eval_data = Xtest.copy()
+    eval_data["target"] = ytest
+    run_experiment(Xtrain, ytrain, eval_data)
