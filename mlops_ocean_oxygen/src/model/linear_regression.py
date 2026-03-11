@@ -10,6 +10,8 @@ load_dotenv("../env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import KFold
 from mlflow.models import infer_signature
 import pandas as pd
@@ -22,7 +24,8 @@ def run_experiment(X, y, eval_data):
 
     with mlflow.start_run(run_name=model_name) as run:
 
-        model = LinearRegression(n_jobs=-1)
+        model = Pipeline([('scaler', StandardScaler()), ('linear_reg', LinearRegression(n_jobs=-1))])
+        
         train_scores = []
         test_scores = []
         total_time = 0

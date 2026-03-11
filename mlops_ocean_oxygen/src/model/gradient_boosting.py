@@ -11,6 +11,8 @@ load_dotenv("../env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import ParameterGrid, KFold
 from mlflow.models import infer_signature
 import pandas as pd
@@ -30,7 +32,7 @@ def run_experiment(X, y, eval_data):
     for params in ParameterGrid(param_grid):
         with mlflow.start_run(run_name=model_name) as run:
 
-            model = GradientBoostingRegressor(**params)
+            model = Pipeline([('scaler', StandardScaler()), ('gradient_boosting', GradientBoostingRegressor(**params))])
             train_scores = []
             test_scores = []
             total_time = 0

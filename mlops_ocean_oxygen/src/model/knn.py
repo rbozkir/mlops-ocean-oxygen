@@ -11,6 +11,8 @@ load_dotenv("../env")
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import ParameterGrid, KFold
 from mlflow.models import infer_signature
 import pandas as pd
@@ -27,7 +29,8 @@ def run_experiment(X, y, eval_data):
     for params in ParameterGrid(param_grid):
         with mlflow.start_run(run_name=model_name) as run:
 
-            model = KNeighborsRegressor(**params)
+            model = Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsRegressor(**params))])
+            
             train_scores = []
             test_scores = []
             total_time = 0
