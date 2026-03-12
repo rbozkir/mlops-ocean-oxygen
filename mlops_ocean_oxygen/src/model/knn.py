@@ -6,10 +6,10 @@ import uuid
 
 sys.path.append(os.path.join("."))
 from utils.metrics import evaluate
+from data.preprocessing import withspark
 from dotenv import load_dotenv
 load_dotenv("../env")
 
-from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -18,7 +18,7 @@ from mlflow.models import infer_signature
 import pandas as pd
 
 
-def run_experiment(X, y, eval_data):
+def run_experiment(X, y, eval_data, target):
     model_name = "KNN"
 
     param_grid = {
@@ -77,7 +77,7 @@ def run_experiment(X, y, eval_data):
             mlflow.models.evaluate(
                 model_info.model_uri,
                 eval_data,
-                targets="target",
+                targets=target,
                 model_type="regressor",
                 evaluators=["default"],
             )
@@ -94,16 +94,13 @@ def run_experiment(X, y, eval_data):
             mlflow.log_metrics(cv_result)
 
 if __name__=="__main__":
-    water_data = pd.read_csv("data/water.csv")
-    water_data = water_data[water_data["O2ml_L"] >= 0].copy()
+    dataset_path = "data/CalCOFI_Database_194903-202105_csv_16October2023/194903-202105_Bottle.csv"
     features = ["Depthm", "T_degC", "PO4uM", "SiO3uM", "NO2uM", "NO3uM", "Salnty"]
     target = "O2ml_L"
 
-    for col in features:
-        if water_data[col].isnull().any() or water_data[col].dtype == "int64":
-            water_data[col] = water_data[col].astype("float64")
-    
-    Xtrain, Xtest, ytrain, ytest = train_test_split(water_data[features], water_data[target], train_size=80, random_state=42)
-    eval_data = Xtest.copy()
-    eval_data["target"] = ytest
-    run_experiment(Xtrain, ytrain, eval_data)
+    train_data, eval_data = withspark(dataset_path, features, target)
+
+    Xtrain = train_data[features]
+    ytrain = train_data[target]
+
+    run_experiment(Xtrain, ytrain, eval_data, target)

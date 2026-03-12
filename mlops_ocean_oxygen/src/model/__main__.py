@@ -1,23 +1,37 @@
 import ensemble_bagged_trees, gradient_boosting, knn, linear_regression, neural_network, svm
 import pandas as pd 
 from sklearn.model_selection import train_test_split
+from data.preprocessing import withpandas, withspark
+import time 
 
-water_data = pd.read_csv("data/water.csv")
-water_data = water_data[(water_data["O2ml_L"] >= 0) & (water_data["NO3uM"] >= 0)].copy()
+dataset_path = "data/CalCOFI_Database_194903-202105_csv_16October2023/194903-202105_Bottle.csv"
 features = ["Depthm", "T_degC", "PO4uM", "SiO3uM", "NO2uM", "NO3uM", "Salnty"]
 target = "O2ml_L"
 
-for col in features:
-    if water_data[col].isnull().any() or water_data[col].dtype == "int64":
-        water_data[col] = water_data[col].astype("float64")
+# Pandas
+start_p = time.time()
+train_data, eval_data = withpandas(dataset_path, features, target)
+end_p = time.time()
+pandas_time = end_p - start_p
 
-Xtrain, Xtest, ytrain, ytest = train_test_split(water_data[features], water_data[target], train_size=80, random_state=42)
-eval_data = Xtest.copy()
-eval_data["target"] = ytest
+# Apache Spark
+start_s = time.time()
+train_data, eval_data = withspark(dataset_path, features, target)
+end_s = time.time()
+spark_time = end_s - start_s
 
-ensemble_bagged_trees.run_experiment(Xtrain, ytrain, eval_data)
-gradient_boosting.run_experiment(Xtrain, ytrain, eval_data)
-knn.run_experiment(Xtrain, ytrain, eval_data)
-linear_regression.run_experiment(Xtrain, ytrain, eval_data)
-neural_network.run_experiment(Xtrain, ytrain, eval_data)
-svm.run_experiment(Xtrain, ytrain, eval_data)
+print(f"\n{'Preprocessing Method':<15} | {'Computation Time (second)':<20}")
+print("-" * 40)
+print(f"{'Pandas':<15} | {pandas_time:.4f} s")
+print(f"{'Apache Spark':<15} | {spark_time:.4f} s")
+
+Xtrain = train_data[features]
+ytrain = train_data[target]
+
+import pdb;pdb.set_trace()
+ensemble_bagged_trees.run_experiment(Xtrain, ytrain, eval_data, target)
+gradient_boosting.run_experiment(Xtrain, ytrain, eval_data, target)
+knn.run_experiment(Xtrain, ytrain, eval_data, target)
+linear_regression.run_experiment(Xtrain, ytrain, eval_data, target)
+neural_network.run_experiment(Xtrain, ytrain, eval_data, target)
+svm.run_experiment(Xtrain, ytrain, eval_data, target)
